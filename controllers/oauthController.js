@@ -1,7 +1,6 @@
-const axios = require('axios');
-const User = require('../models/User');
-const UserSettings = require('../models/UserSettings');
-const jwt = require('jsonwebtoken');
+import User from '../models/User.js'
+import UserSettings from '../models/UserSettings.js'
+import jwt from 'jsonwebtoken'
 
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -9,7 +8,6 @@ const generateToken = (id) => {
   });
 };
 
-// Google OAuth for Login
 const googleAuth = async (req, res) => {
   try {
     const { code } = req.query;
@@ -18,7 +16,6 @@ const googleAuth = async (req, res) => {
       return res.status(400).json({ message: 'Authorization code required' });
     }
 
-    // Exchange code for tokens
     const tokenResponse = await axios.post('https://oauth2.googleapis.com/token', {
       client_id: process.env.GOOGLE_CLIENT_ID,
       client_secret: process.env.GOOGLE_CLIENT_SECRET,
@@ -29,14 +26,14 @@ const googleAuth = async (req, res) => {
 
     const { access_token } = tokenResponse.data;
 
-    // Get user info from Google
+  
     const userResponse = await axios.get('https://www.googleapis.com/oauth2/v2/userinfo', {
       headers: { Authorization: `Bearer ${access_token}` }
     });
 
     const { id, email, name, picture } = userResponse.data;
 
-    // Find or create user
+  
     let user = await User.findOne({ email });
     
     if (!user) {
@@ -48,7 +45,7 @@ const googleAuth = async (req, res) => {
         isEmailVerified: true
       });
     } else {
-      // Update existing user with Google info
+    
       user.googleId = id;
       user.avatar = picture;
       user.isEmailVerified = true;
@@ -348,7 +345,7 @@ const getOAuthUrls = async (req, res) => {
   }
 };
 
-module.exports = {
+export {
   googleAuth,
   githubAuth,
   googleCalendarAuth,

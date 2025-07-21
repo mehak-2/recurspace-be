@@ -1,25 +1,31 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
-const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
-require('dotenv').config();
+import express from 'express'
+import cors from 'cors'
+import helmet from 'helmet'
+import bodyParser from 'body-parser'
+import mongoose from 'mongoose'
+import session from 'express-session'
+import MongoStore from 'connect-mongo'
+import dotenv from 'dotenv'
+dotenv.config()
 
-const userRoutes = require('./routes/userRoutes');
-const taskRoutes = require('./routes/taskRoutes');
-const suggestionRoutes = require('./routes/suggestionRoutes');
-const workflowRoutes = require('./routes/workflowRoutes');
-const aiOptimizerRoutes = require('./routes/aiOptimizerRoutes');
-const templateRoutes = require('./routes/templateRoutes');
-const analyticsRoutes = require('./routes/analyticsRoutes');
-const settingsRoutes = require('./routes/settingsRoutes');
-const dashboardRoutes = require('./routes/dashboardRoutes');
-const billingRoutes = require('./routes/billingRoutes');
-const notificationRoutes = require('./routes/notificationRoutes');
-const integrationRoutes = require('./routes/integrationRoutes');
-const securityRoutes = require('./routes/securityRoutes');
-const oauthRoutes = require('./routes/oauthRoutes');
-const { authMiddleware } = require('./middleware/authMiddleware');
+import rateLimit from 'express-rate-limit'
+
+
+import userRoutes from './routes/userRoutes.js'
+import taskRoutes from './routes/taskRoutes.js'
+import suggestionRoutes from './routes/suggestionRoutes.js'
+import workflowRoutes from './routes/workflowRoutes.js'
+import aiOptimizerRoutes from './routes/aiOptimizerRoutes.js'
+import templateRoutes from './routes/templateRoutes.js'
+import analyticsRoutes from './routes/analyticsRoutes.js'
+import settingsRoutes from './routes/settingsRoutes.js'
+import dashboardRoutes from './routes/dashboardRoutes.js'
+import billingRoutes from './routes/billingRoutes.js'
+import notificationRoutes from './routes/notificationRoutes.js'
+import integrationRoutes from './routes/integrationRoutes.js'
+import securityRoutes from './routes/securityRoutes.js'
+import oauthRoutes from './routes/oauthRoutes.js'
+import { authMiddleware } from './middleware/authMiddleware.js'
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -139,4 +145,4 @@ const startServer = async () => {
 
 startServer();
 
-module.exports = app; 
+export default app 
