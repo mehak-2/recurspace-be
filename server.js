@@ -37,11 +37,11 @@ const limiter = rateLimit({
   skip: (req) => process.env.NODE_ENV !== 'production'
 });
 
-app.use(helmet());
 app.use(cors({
   origin: process.env.ALLOWED_ORIGIN,
   credentials: true
 }));
+app.use(helmet());
 app.use(limiter);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
