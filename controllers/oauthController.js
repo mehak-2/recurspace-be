@@ -1,6 +1,8 @@
 import User from '../models/User.js'
 import UserSettings from '../models/UserSettings.js'
 import jwt from 'jsonwebtoken'
+import axios from 'axios'
+import qs from 'qs'
 
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -260,21 +262,31 @@ const slackIntegrationAuth = async (req, res) => {
   try {
     const { code } = req.query;
     const userId = req.user.id;
-    
+
     if (!code) {
       return res.status(400).json({ message: 'Authorization code required' });
     }
 
-    // Exchange code for tokens
-    const tokenResponse = await axios.post('https://slack.com/api/oauth.v2.access', {
-      client_id: process.env.SLACK_CLIENT_ID,
-      client_secret: process.env.SLACK_CLIENT_SECRET,
-      code
-    });
+    const tokenResponse = await axios.post(
+      'https://slack.com/api/oauth.v2.access',
+      qs.stringify({
+        client_id: process.env.SLACK_CLIENT_ID,
+        client_secret: process.env.SLACK_CLIENT_SECRET,
+        code,
+        redirect_uri: process.env.SLACK_REDIRECT_URI
+      }),
+      {
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+      }
+    );
+
+    if (!tokenResponse.data.ok) {
+      console.error('Slack OAuth error:', tokenResponse.data);
+      return res.status(400).json({ message: 'Slack OAuth error', details: tokenResponse.data });
+    }
 
     const { access_token, team } = tokenResponse.data;
 
-    // Store integration credentials
     await UserSettings.findOneAndUpdate(
       { user: userId },
       {
@@ -304,8 +316,8 @@ const slackIntegrationAuth = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Slack Integration OAuth error:', error);
-    res.status(500).json({ message: 'Slack connection failed' });
+    console.error('Slack Integration OAuth error:', error?.response?.data || error);
+    res.status(500).json({ message: 'Slack connection failed', details: error?.response?.data || error.message });
   }
 };
 
@@ -330,7 +342,7 @@ const getOAuthUrls = async (req, res) => {
         scope: 'repo issues pull_requests'
       },
       slack: {
-        authUrl: `https://slack.com/oauth/authorize?client_id=${process.env.SLACK_CLIENT_ID}&redirect_uri=${encodeURIComponent(process.env.SLACK_REDIRECT_URI)}&scope=${encodeURIComponent('channels:read chat:write channels:history')}&response_type=code`,
+        authUrl: `https://slack.com/oauth/v2/authorize?client_id=${process.env.SLACK_CLIENT_ID}&redirect_uri=${encodeURIComponent(process.env.SLACK_REDIRECT_URI)}&scope=${encodeURIComponent('channels:read chat:write channels:history')}&response_type=code`,
         scope: 'channels:read chat:write channels:history'
       }
     };

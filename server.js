@@ -11,6 +11,7 @@ dotenv.config()
 import rateLimit from 'express-rate-limit'
 
 
+
 import userRoutes from './routes/userRoutes.js'
 import taskRoutes from './routes/taskRoutes.js'
 import suggestionRoutes from './routes/suggestionRoutes.js'
@@ -27,7 +28,32 @@ import securityRoutes from './routes/securityRoutes.js'
 import oauthRoutes from './routes/oauthRoutes.js'
 import { authMiddleware } from './middleware/authMiddleware.js'
 
+import slackRoutes from './routes/slackRoutes.js'
+
+if (!process.env.ALLOWED_ORIGINS) {
+  throw new Error('ALLOWED_ORIGINS is not set in .env');
+}
+
+const allowedOrigins = process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim());
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS: ' + origin));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+};
+
 const app = express();
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
+
 const PORT = process.env.PORT || 5000;
 
 const limiter = rateLimit({
@@ -37,10 +63,7 @@ const limiter = rateLimit({
   skip: (req) => process.env.NODE_ENV !== 'production'
 });
 
-app.use(cors({
-  origin: process.env.ALLOWED_ORIGIN,
-  credentials: true
-}));
+
 app.use(helmet());
 app.use(limiter);
 app.use(express.json({ limit: '10mb' }));
@@ -96,6 +119,7 @@ app.use('/api/notifications', authMiddleware, notificationRoutes);
 app.use('/api/integrations', authMiddleware, integrationRoutes);
 app.use('/api/security', authMiddleware, securityRoutes);
 app.use('/api/oauth', oauthRoutes);
+app.use('/slack', slackRoutes)
 
 app.get('/api/health', (req, res) => {
   const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
