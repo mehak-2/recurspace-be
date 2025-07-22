@@ -137,6 +137,7 @@ app.use('/slack', slackRoutes);
 
 // ✅ Health check route
 app.get('/api/health', (req, res) => {
+  console.log("ENV", process.env.NODE_ENV, allowedOrigins, corsOptions);
   const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
   res.json({
     status: 'OK',
