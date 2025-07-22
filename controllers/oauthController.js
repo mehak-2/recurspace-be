@@ -330,7 +330,7 @@ const getOAuthUrls = async (req, res) => {
         scope: 'repo issues pull_requests'
       },
       slack: {
-        authUrl: `https://slack.com/oauth/authorize?client_id=${process.env.SLACK_CLIENT_ID}&redirect_uri=${encodeURIComponent(process.env.SLACK_REDIRECT_URI)}&scope=${encodeURIComponent('channels:read chat:write channels:history')}&response_type=code`,
+        authUrl: `https://slack.com/oauth/v2/authorize?client_id=${process.env.SLACK_CLIENT_ID}&redirect_uri=${encodeURIComponent(process.env.SLACK_REDIRECT_URI)}&scope=${encodeURIComponent('channels:read chat:write channels:history')}&response_type=code`,
         scope: 'channels:read chat:write channels:history'
       }
     };
