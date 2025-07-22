@@ -2,6 +2,7 @@ import User from '../models/User.js'
 import UserSettings from '../models/UserSettings.js'
 import jwt from 'jsonwebtoken'
 import axios from 'axios'
+import qs from 'qs'
 
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -266,12 +267,18 @@ const slackIntegrationAuth = async (req, res) => {
       return res.status(400).json({ message: 'Authorization code required' });
     }
 
-    const tokenResponse = await axios.post('https://slack.com/api/oauth.v2.access', {
-      client_id: process.env.SLACK_CLIENT_ID,
-      client_secret: process.env.SLACK_CLIENT_SECRET,
-      code,
-      redirect_uri: process.env.SLACK_REDIRECT_URI // include this!
-    });
+    const tokenResponse = await axios.post(
+      'https://slack.com/api/oauth.v2.access',
+      qs.stringify({
+        client_id: process.env.SLACK_CLIENT_ID,
+        client_secret: process.env.SLACK_CLIENT_SECRET,
+        code,
+        redirect_uri: process.env.SLACK_REDIRECT_URI
+      }),
+      {
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+      }
+    );
 
     if (!tokenResponse.data.ok) {
       console.error('Slack OAuth error:', tokenResponse.data);
