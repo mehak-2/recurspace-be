@@ -260,21 +260,25 @@ const slackIntegrationAuth = async (req, res) => {
   try {
     const { code } = req.query;
     const userId = req.user.id;
-    
+
     if (!code) {
       return res.status(400).json({ message: 'Authorization code required' });
     }
 
-    // Exchange code for tokens
     const tokenResponse = await axios.post('https://slack.com/api/oauth.v2.access', {
       client_id: process.env.SLACK_CLIENT_ID,
       client_secret: process.env.SLACK_CLIENT_SECRET,
-      code
+      code,
+      redirect_uri: process.env.SLACK_REDIRECT_URI // include this!
     });
+
+    if (!tokenResponse.data.ok) {
+      console.error('Slack OAuth error:', tokenResponse.data);
+      return res.status(400).json({ message: 'Slack OAuth error', details: tokenResponse.data });
+    }
 
     const { access_token, team } = tokenResponse.data;
 
-    // Store integration credentials
     await UserSettings.findOneAndUpdate(
       { user: userId },
       {
@@ -304,8 +308,8 @@ const slackIntegrationAuth = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Slack Integration OAuth error:', error);
-    res.status(500).json({ message: 'Slack connection failed' });
+    console.error('Slack Integration OAuth error:', error?.response?.data || error);
+    res.status(500).json({ message: 'Slack connection failed', details: error?.response?.data || error.message });
   }
 };
 
