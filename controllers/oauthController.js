@@ -1,6 +1,7 @@
 import User from '../models/User.js'
 import UserSettings from '../models/UserSettings.js'
 import jwt from 'jsonwebtoken'
+import axios from 'axios'
 
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
